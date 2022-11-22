@@ -4,9 +4,29 @@ import styled from "styled-components";
 import { CSSReset } from "../src/components/CSSReset";
 import Menu from "../src/components/Menu/";
 import { StyledTimeline } from "../src/components/Timeline";
+import { videoService } from "../src/components/services/videoService";
 
 function HomePage() {
+  const service = videoService();
   const [valorDoFiltro, setValorDoFiltro] = React.useState("");
+  const [playlists, setPlaylist ] = React.useState({});
+  
+  //para evitar de cascatamento infinito do setstate
+  React.useEffect(() => { 
+      service
+      .getAllVideos()
+      .then((dados) => {
+        const novasPlaylists = {...playlists};
+        dados.data.forEach((video) => {
+            if(!novasPlaylists[video.playlist]){
+            novasPlaylists[video.playlist] = [];
+            }
+            novasPlaylists[video.playlist].push(video);
+        })
+        setPlaylist(novasPlaylists)
+        });     
+    }, []); //sempre que playlist mudar isso acontece de novo
+   
     return (
       <>
        <CSSReset/>
@@ -18,7 +38,7 @@ function HomePage() {
             }}>
             <Menu valorDoFiltro={valorDoFiltro} setValorDoFiltro={setValorDoFiltro}/>
             <Header></Header>
-            <Timeline searchValue={valorDoFiltro} playlists={config.playlists}/>
+            <Timeline searchValue={valorDoFiltro} playlists={playlists}/>
            </div>
       </>
           )
